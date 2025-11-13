@@ -1,41 +1,75 @@
 import { useEffect, useState, useRef } from "react";
 
-//we want whenever this App component gets mount (render) their should be a persistent websocket connection created , we dont want it on every render but when it comes on the screen for first time , we use useEffect for it
 function App() {
+  const [messages, setMessages] = useState(["hiii" , "heloo"]); // Should be array, not string
+  
+  const wsRef = useRef(null); // Store WebSocket instance
 
-const [socket , setSocket] = useState()
-const inputRef = useRef(null);
-  //how to send a msg
-  function sendMessage() {
-    if (!socket) {
-      return;
-    }
-    //@ts-expect-error imp
-    socket.send(inputRef.current.value)
-  }
+  
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080"); //initiates a ws connection to the server
-   
-    setSocket(ws)
+    const ws = new WebSocket("ws://localhost:8080");
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log("WebSocket connected");
+      ws.send(JSON.stringify({
+        type: "join",
+        payload: {
+          roomId: "red"
+        }
+      }))
+    };
 
     ws.onmessage = (ev) => {
-      alert(ev.data);
-    };//this is how you recieve a msg
-  }, []); //empty dependency tells this code to work only when it mounts for the first time
+      setMessages((m) => [...m, ev.data]);
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected");
+    };
+
+    // Cleanup on unmount
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   return (
-    <div
-      style={{
-        height: "95vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-end",
-      }}
-    >
-      <div style={{}}>
-        <input ref={inputRef} placeholder="Message..."></input>
-        <button onClick={sendMessage}>Send</button>
+    <div className="h-screen bg-black">
+      <div className="h-[85vh] overflow-y-auto p-4">
+        {messages.map((message, index) => (
+          <div key={index} className="mb-2">
+            <span className="bg-white text-black rounded p-4 inline-block">
+              {message}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="w-full bg-white flex">
+        <input
+          className="flex-1 p-4 outline-none"
+          id="message"
+          placeholder="Type a message..."
+        />
+        <button
+          className="bg-purple-600 text-white p-4 hover:bg-purple-700"
+          onClick={() => {
+            const message = document.getElementById("message")?.value;
+            wsRef.current.send(JSON.stringify({
+              type: "chat",
+              payload: {
+                message: message
+              }
+          }))
+          }}
+        >
+          Send
+        </button>
       </div>
     </div>
   );
