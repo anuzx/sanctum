@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   web:
     container_name: scantum
@@ -7,13 +5,34 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+
     ports:
       - "3000:3000"
+
     environment:
       NODE_ENV: development
       NEXT_TELEMETRY_DISABLED: "1"
+
     volumes:
       - .:/app
       - /app/node_modules
       - /app/.next
+
     restart: unless-stopped
+
+    develop:
+      watch:
+        # Sync source code changes instantly
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - node_modules
+            - .next
+            - .git
+
+        # Rebuild container if dependencies change
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: bun.lockb

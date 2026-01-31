@@ -6,7 +6,7 @@
 4.upstach/realtime -> for realtime communication <br>
 5.elysia -> for backend <br>
 6.zod -> for data validation<br>
-7.Tanstack_Query -> for query and mutation of endpoints
+7.Tanstack_Query -> for query and mutation of endpoints <br>
 8.Tailwind-css -> for styling
 
 ## Running Locally with Docker
@@ -27,6 +27,11 @@ cd scantum
 docker compose up --build
 ```
 3.Open the app in your browser : http://localhost:3000
+
+# For daily Development 
+```
+docker compose up --watch
+```
 
 # stop the container
 
